@@ -7,10 +7,22 @@
 
 import SwiftUI
 
+struct WindowAccessor: NSViewRepresentable {
+   @Binding
+   var window: NSWindow?
+   func makeNSView(context: Context) -> NSView {
+      let view = NSView()
+      DispatchQueue.main.async {
+         self.window = view.window
+      }
+      return view
+   }
+   func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
 struct CreateView: View {
     @EnvironmentObject var editModel: HomeViewModel
     @Environment(\.dismiss) var dismiss
-    @Environment(\.presentationMode) var presentationMode
     @State var name:String = ""
     @State var filePath:String = ""
     var body: some View {
@@ -60,6 +72,11 @@ struct CreateView: View {
             .padding()
         }
         .frame(width: 500, height: 300)
+        .onDisappear {
+            if self.editModel.project == nil {
+                NSApplication.shared.keyWindow?.close()
+            }
+        }
     }
     
     func openFile() {
@@ -86,7 +103,7 @@ struct CreateView: View {
             self.editModel.projectPath = url
             self.editModel.project = project
             try self.editModel.saveProject()
-            self.presentationMode.wrappedValue.dismiss()
+            self.dismiss()
         }catch{
             
         }

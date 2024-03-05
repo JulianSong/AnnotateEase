@@ -359,11 +359,13 @@ struct LabelsTitleColumn: View {
 }
 
 struct HomeView: View {
+    
     enum TextShowMode:String, CaseIterable {
         case text,sentence
     }
-    @EnvironmentObject var viewModel: HomeViewModel
+    @StateObject var viewModel = HomeViewModel()
     @State var textShowMode:TextShowMode = .text
+    @State var showProjectCreateView:Bool = false
     @State var showDatasetCreateView:Bool = false
     var datasets: some View {
         List(selection: $viewModel.sideBarSelection) {
@@ -676,6 +678,15 @@ struct HomeView: View {
             .navigationTitle(self.viewModel.project?.projectName ?? "")
         }
         .frame(maxHeight: .infinity)
+        .onAppear{
+            if self.viewModel.project == nil {
+                self.showProjectCreateView.toggle()
+            }
+        }
+        .sheet(isPresented:  $showProjectCreateView){
+            CreateView()
+                .environmentObject(self.viewModel)
+        }
         .onOpenURL {
             self.viewModel.prjectFilePath = $0
             self.viewModel.loadProject()

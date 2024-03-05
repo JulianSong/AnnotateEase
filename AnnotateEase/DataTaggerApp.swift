@@ -9,19 +9,23 @@ import SwiftUI
 
 @main
 struct DataTaggerApp: App {
-    @StateObject var viewModel = HomeViewModel()
+    
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("", id: "new_window") {
             HomeView()
-                .environmentObject(viewModel)
                 .frame(minWidth: 1100,maxWidth: .infinity, minHeight: 600,maxHeight: .infinity)
                 .onAppear {
                     NSWindow.allowsAutomaticWindowTabbing = false
                 }
+                .handlesExternalEvents(preferring: Set(arrayLiteral: "create"), allowing: Set(arrayLiteral: "create"))
         }
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button {} label: {
+                Button {
+                    if let url = URL(string: "AnnotateEase://create") {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
                     Text("Creat a new project")
                 }
                 .frame(maxWidth: .infinity)
@@ -29,7 +33,7 @@ struct DataTaggerApp: App {
             }
             CommandGroup(after: .newItem) {
                 Button {
-                    self.viewModel.openProject()
+                    
                 } label: {
                     Text("Open an existing project")
                 }
