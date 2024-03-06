@@ -653,13 +653,14 @@ struct HomeView: View {
             .padding(EdgeInsets(top: 8, leading: 16, bottom: 0, trailing: 16))
         }
         .padding(0)
-        .frame(minWidth:200,maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minWidth:250,maxWidth: .infinity, maxHeight: .infinity)
         .transition(AnyTransition.move(edge: .trailing))
     }
     @State var showInspector = false
     var body: some View {
         NavigationSplitView {
             datasets
+                .navigationSplitViewColumnWidth(min: 250, ideal: 300, max: 400)
         } detail: {
             HSplitView {
                 dataList
@@ -672,6 +673,7 @@ struct HomeView: View {
         }
         .inspector(isPresented: $showInspector){
             inspector
+                .inspectorColumnWidth(min: 300, ideal: 350, max: 400)
         }
         .frame(maxHeight: .infinity)
         .sheet(isPresented:  $showProjectCreateView){
