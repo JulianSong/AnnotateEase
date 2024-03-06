@@ -7,24 +7,14 @@
 
 import SwiftUI
 
-struct WindowAccessor: NSViewRepresentable {
-   @Binding
-   var window: NSWindow?
-   func makeNSView(context: Context) -> NSView {
-      let view = NSView()
-      DispatchQueue.main.async {
-         self.window = view.window
-      }
-      return view
-   }
-   func updateNSView(_ nsView: NSView, context: Context) {}
-}
-
 struct CreateView: View {
     @EnvironmentObject var editModel: HomeViewModel
     @Environment(\.dismiss) var dismiss
     @State var name:String = ""
+    @State var fileURL: URL? = nil
     @State var filePath:String = ""
+    @State private var error:LocalizedAlertError? = nil
+    @State private var showAlert = false
     var body: some View {
         VStack(alignment: .leading,spacing: 0){
             Text("Create Porject")
@@ -32,9 +22,15 @@ struct CreateView: View {
             Spacer()
             VStack{
                 Form {
-                    TextField("Name", text: $name, prompt: Text("Name"))
+                    TextField("Project Name", text: $name, prompt: Text("Name"))
+                        .onChange(of: self.name) { oldValue, newValue in
+                            guard let fileURL = self.fileURL else {
+                                return
+                            }
+                            self.filePath = fileURL.appendingPathComponent(self.name).path
+                        }
                     HStack{
-                        TextField("Saved Path", text: $filePath, prompt: Text("Json File Saved Path"))
+                        TextField("Project Path", text: $filePath, prompt: Text("Project Path"))
                         Button {
                             self.openFile()
                         } label: {
@@ -42,7 +38,8 @@ struct CreateView: View {
                         }
                     }
                 }
-                .frame(maxWidth: 300)
+                .frame(minWidth: 300,idealWidth: 350, maxWidth: .infinity)
+                .padding(.horizontal)
             }
             .frame(maxWidth: .infinity,maxHeight:.infinity)
             .background(Color.primary.opacity(0.1))
@@ -62,16 +59,26 @@ struct CreateView: View {
                 }
                 .accentColor(Color(nsColor: .controlAccentColor))
                 Spacer()
-                Button {
+                Button() {
                     self.create()
                 } label: {
                     Text("Create")
                 }
-                .accentColor(Color(nsColor: .controlAccentColor))
+                .buttonStyle(.borderedProminent)
+                .tint(Color(nsColor: .selectedContentBackgroundColor))
+                .disabled(self.name.isEmpty || self.filePath.isEmpty)
             }
             .padding()
         }
-        .frame(width: 500, height: 300)
+        .frame(height: 300)
+        .frame(minWidth: 500, maxWidth: 600)
+        .alert(isPresented: $showAlert, error: error) { _ in
+            Button("OK") {
+                self.showAlert.toggle()
+            }
+        } message: { error in
+            Text(error.recoverySuggestion ?? "Try again later.")
+        }
         .onDisappear {
             if self.editModel.project == nil {
                 NSApplication.shared.keyWindow?.close()
@@ -86,13 +93,18 @@ struct CreateView: View {
         panel.canChooseFiles = false
         panel.allowedContentTypes = [.annotateeaseProjectFile]
         if panel.runModal() == .OK, let url = panel.url {
-            self.filePath = url.path()
+            self.fileURL = url
+            if self.name.isEmpty {
+                self.filePath = url.path()
+            }else{
+                self.filePath = url.appendingPathComponent(self.name).path
+            }
         }
     }
     
     func create() {
         let project = Project(projectName: self.name)
-        let url = URL(filePath: self.filePath).appending(path: self.name)
+        let url = self.fileURL!.appending(path: self.name)
         let projectFileUrl = url.appending(path: "\(self.name).aegr")
         let projectTextsFolder = projectFileUrl.appending(path: "Texts")
         do{
@@ -105,7 +117,8 @@ struct CreateView: View {
             try self.editModel.saveProject()
             self.dismiss()
         }catch{
-            
+            self.error = LocalizedAlertError(error: error)
+            self.showAlert.toggle()
         }
     }
 }

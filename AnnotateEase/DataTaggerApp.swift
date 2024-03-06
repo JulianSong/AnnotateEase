@@ -9,16 +9,23 @@ import SwiftUI
 
 @main
 struct DataTaggerApp: App {
-    
     var body: some Scene {
-        WindowGroup("", id: "new_window") {
+        WindowGroup{
+            WelcomeView()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .handlesExternalEvents(matching: [])
+        
+        WindowGroup {
             HomeView()
                 .frame(minWidth: 1100,maxWidth: .infinity, minHeight: 600,maxHeight: .infinity)
+                .handlesExternalEvents(preferring: Set(arrayLiteral: "create"), allowing: Set(arrayLiteral: "create"))
                 .onAppear {
                     NSWindow.allowsAutomaticWindowTabbing = false
                 }
-                .handlesExternalEvents(preferring: Set(arrayLiteral: "create"), allowing: Set(arrayLiteral: "create"))
         }
+//        .handlesExternalEvents(matching: ["create","file"])
+        .windowToolbarStyle(.unifiedCompact(showsTitle: true))
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button {
@@ -33,7 +40,7 @@ struct DataTaggerApp: App {
             }
             CommandGroup(after: .newItem) {
                 Button {
-                    
+                    self.openProject()
                 } label: {
                     Text("Open an existing project")
                 }
@@ -44,6 +51,17 @@ struct DataTaggerApp: App {
             CommandGroup(replacing: .pasteboard) { }
             CommandGroup(replacing: .undoRedo) { }
             CommandGroup(replacing: .toolbar) {}
+        }
+    }
+    
+    func openProject() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.annotateeaseProjectFile]
+        if panel.runModal() == .OK, let url = panel.url {
+            NSWorkspace.shared.open(url)
         }
     }
 }

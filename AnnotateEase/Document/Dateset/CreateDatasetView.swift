@@ -11,8 +11,9 @@ import SwiftUI
 struct CreateDatasetView: View {
     @EnvironmentObject var editModel: HomeViewModel
     @Environment(\.presentationMode) var presentationMode
-    @State var name:String = ""
-    @State var filePath:String = ""
+    @State private var name:String = ""
+    @State private var error:LocalizedAlertError? = nil
+    @State private var showAlert = false
     var body: some View {
         VStack(alignment: .leading,spacing: 0){
             Text("Create Dataset")
@@ -21,7 +22,6 @@ struct CreateDatasetView: View {
             VStack{
                 Form {
                     TextField("Name", text: $name, prompt: Text("Name"))
-//                    TextField("Saved Path", text: $filePath, prompt: Text("Json File Saved Path"))
                 }
                 .frame(maxWidth: 300)
             }
@@ -33,7 +33,6 @@ struct CreateDatasetView: View {
                     .stroke(.gray, lineWidth: 0.5)
             )
             .padding(.horizontal)
-            
             Spacer()
             HStack{
                 Button {
@@ -53,17 +52,25 @@ struct CreateDatasetView: View {
             .padding()
         }
         .frame(width: 500, height: 300)
+        .alert(isPresented: $showAlert, error: error) { _ in
+            Button("OK") {
+                self.showAlert.toggle()
+            }
+        } message: { error in
+            Text(error.recoverySuggestion ?? "Try again later.")
+        }
     }
     
     func create() {
         let dataset = Project.Dataset(title: self.name, type: "text_word_tag", file: "\(self.name).json", labels: [])
+        self.editModel.project?.datasets.append(dataset)
         do {
-            self.editModel.project?.datasets.append(dataset)
             try self.editModel.saveProject()
             self.editModel.currentDataset = dataset
             self.presentationMode.wrappedValue.dismiss()
         } catch {
-            
+            self.error = LocalizedAlertError(error: error)
+            self.showAlert.toggle()
         }
     }
 }

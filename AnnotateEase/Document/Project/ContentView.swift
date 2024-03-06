@@ -359,7 +359,6 @@ struct LabelsTitleColumn: View {
 }
 
 struct HomeView: View {
-    
     enum TextShowMode:String, CaseIterable {
         case text,sentence
     }
@@ -402,7 +401,6 @@ struct HomeView: View {
                 }
             }
         }
-        .frame(minWidth: 240)
         .listStyle(.sidebar)
     }
     
@@ -653,7 +651,6 @@ struct HomeView: View {
                 Spacer()
             }
             .padding(EdgeInsets(top: 8, leading: 16, bottom: 0, trailing: 16))
-            
         }
         .padding(0)
         .frame(minWidth:200,maxWidth: .infinity, maxHeight: .infinity)
@@ -670,26 +667,26 @@ struct HomeView: View {
                     mutilineContent
                 }
                 editor
-                if showInspector {
-                    inspector
-                        .transition(AnyTransition.move(edge: .trailing))
-                }
             }
             .navigationTitle(self.viewModel.project?.projectName ?? "")
         }
-        .frame(maxHeight: .infinity)
-        .onAppear{
-            if self.viewModel.project == nil {
-                self.showProjectCreateView.toggle()
-            }
+        .inspector(isPresented: $showInspector){
+            inspector
         }
+        .frame(maxHeight: .infinity)
         .sheet(isPresented:  $showProjectCreateView){
             CreateView()
                 .environmentObject(self.viewModel)
         }
         .onOpenURL {
-            self.viewModel.prjectFilePath = $0
-            self.viewModel.loadProject()
+            if $0.scheme == "AnnotateEase" {
+                if $0.host == "create" {
+                    self.showProjectCreateView.toggle()
+                }
+            }else{
+                self.viewModel.prjectFilePath = $0
+                self.viewModel.loadProject()
+            }
         }
         .toolbar {
             ToolbarItemGroup {
@@ -698,7 +695,6 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "sidebar.right")
                 }
-
             }
         }
     }

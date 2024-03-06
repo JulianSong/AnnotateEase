@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		7860C4282A0D30CC00C6DD25 /* WrappingStack in Frameworks */ = {isa = PBXBuildFile; productRef = 7860C4272A0D30CC00C6DD25 /* WrappingStack */; };
 		B91882C92B970AA200CBB0C8 /* CreateDatasetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91882C82B970AA200CBB0C8 /* CreateDatasetView.swift */; };
+		B91882CD2B987BAF00CBB0C8 /* LocalizedAlertError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91882CC2B987BAF00CBB0C8 /* LocalizedAlertError.swift */; };
 		B9709BCF2B96F5F100917DAF /* LabelViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9709BCE2B96F5F100917DAF /* LabelViews.swift */; };
 		B99668AB2B12DB5700EF9BA2 /* CreateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99668A22B12DB5700EF9BA2 /* CreateView.swift */; };
 		B99668AC2B12DB5700EF9BA2 /* DataTaggerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99668A32B12DB5700EF9BA2 /* DataTaggerApp.swift */; };
@@ -17,11 +18,13 @@
 		B99668AF2B12DB5700EF9BA2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99668A82B12DB5700EF9BA2 /* ContentView.swift */; };
 		B99668B02B12DB5700EF9BA2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B99668A92B12DB5700EF9BA2 /* Info.plist */; };
 		B99668B12B12DB5700EF9BA2 /* DatataggerDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99668AA2B12DB5700EF9BA2 /* DatataggerDocument.swift */; };
+		B9D7D2522B988079009719CA /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D7D2512B988079009719CA /* WelcomeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		7860C3F62A0D141100C6DD25 /* AnnotateEase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AnnotateEase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B91882C82B970AA200CBB0C8 /* CreateDatasetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateDatasetView.swift; sourceTree = "<group>"; };
+		B91882CC2B987BAF00CBB0C8 /* LocalizedAlertError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedAlertError.swift; sourceTree = "<group>"; };
 		B9709BCE2B96F5F100917DAF /* LabelViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelViews.swift; sourceTree = "<group>"; };
 		B99668A22B12DB5700EF9BA2 /* CreateView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateView.swift; sourceTree = "<group>"; };
 		B99668A32B12DB5700EF9BA2 /* DataTaggerApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataTaggerApp.swift; sourceTree = "<group>"; };
@@ -31,6 +34,7 @@
 		B99668A82B12DB5700EF9BA2 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B99668A92B12DB5700EF9BA2 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B99668AA2B12DB5700EF9BA2 /* DatataggerDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatataggerDocument.swift; sourceTree = "<group>"; };
+		B9D7D2512B988079009719CA /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,22 +73,63 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		B9709BCC2B96ECD900917DAF /* Labels */ = {
+		B91882CA2B987B5100CBB0C8 /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				B91882CE2B987BB500CBB0C8 /* Extensions */,
+			);
+			path = Base;
+			sourceTree = "<group>";
+		};
+		B91882CB2B987B6500CBB0C8 /* Errors */ = {
+			isa = PBXGroup;
+			children = (
+				B91882CC2B987BAF00CBB0C8 /* LocalizedAlertError.swift */,
+			);
+			path = Errors;
+			sourceTree = "<group>";
+		};
+		B91882CE2B987BB500CBB0C8 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				B91882CB2B987B6500CBB0C8 /* Errors */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		B91882CF2B987C7B00CBB0C8 /* Project */ = {
+			isa = PBXGroup;
+			children = (
+				B99668AA2B12DB5700EF9BA2 /* DatataggerDocument.swift */,
+				B99668A82B12DB5700EF9BA2 /* ContentView.swift */,
+				B99668A22B12DB5700EF9BA2 /* CreateView.swift */,
+				B9D7D2512B988079009719CA /* WelcomeView.swift */,
+			);
+			path = Project;
+			sourceTree = "<group>";
+		};
+		B91882D02B987D2400CBB0C8 /* Dateset */ = {
+			isa = PBXGroup;
+			children = (
+				B91882C82B970AA200CBB0C8 /* CreateDatasetView.swift */,
+			);
+			path = Dateset;
+			sourceTree = "<group>";
+		};
+		B9709BCC2B96ECD900917DAF /* Label */ = {
 			isa = PBXGroup;
 			children = (
 				B9709BCE2B96F5F100917DAF /* LabelViews.swift */,
 			);
-			path = Labels;
+			path = Label;
 			sourceTree = "<group>";
 		};
 		B9709BCD2B96ECE200917DAF /* Document */ = {
 			isa = PBXGroup;
 			children = (
-				B99668AA2B12DB5700EF9BA2 /* DatataggerDocument.swift */,
-				B99668A82B12DB5700EF9BA2 /* ContentView.swift */,
-				B9709BCC2B96ECD900917DAF /* Labels */,
-				B99668A22B12DB5700EF9BA2 /* CreateView.swift */,
-				B91882C82B970AA200CBB0C8 /* CreateDatasetView.swift */,
+				B91882D02B987D2400CBB0C8 /* Dateset */,
+				B91882CF2B987C7B00CBB0C8 /* Project */,
+				B9709BCC2B96ECD900917DAF /* Label */,
 			);
 			path = Document;
 			sourceTree = "<group>";
@@ -92,6 +137,7 @@
 		B99668A12B12DB5700EF9BA2 /* AnnotateEase */ = {
 			isa = PBXGroup;
 			children = (
+				B91882CA2B987B5100CBB0C8 /* Base */,
 				B9709BCD2B96ECE200917DAF /* Document */,
 				B99668A32B12DB5700EF9BA2 /* DataTaggerApp.swift */,
 				B99668A42B12DB5700EF9BA2 /* Assets.xcassets */,
@@ -192,6 +238,8 @@
 				B99668AC2B12DB5700EF9BA2 /* DataTaggerApp.swift in Sources */,
 				B99668B12B12DB5700EF9BA2 /* DatataggerDocument.swift in Sources */,
 				B91882C92B970AA200CBB0C8 /* CreateDatasetView.swift in Sources */,
+				B91882CD2B987BAF00CBB0C8 /* LocalizedAlertError.swift in Sources */,
+				B9D7D2522B988079009719CA /* WelcomeView.swift in Sources */,
 				B99668AF2B12DB5700EF9BA2 /* ContentView.swift in Sources */,
 				B9709BCF2B96F5F100917DAF /* LabelViews.swift in Sources */,
 			);
