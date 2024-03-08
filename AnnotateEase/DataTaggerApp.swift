@@ -62,6 +62,10 @@ struct DataTaggerApp: App {
         panel.allowedContentTypes = [.annotateeaseProjectFile]
         if panel.runModal() == .OK, let url = panel.url {
             NSWorkspace.shared.open(url)
+            var recent:[String] = UserDefaults.standard.array(forKey: "studio.peachtree.annotateease.recent") as? [String] ?? [String]()
+            recent.removeAll { $0 == url.path }
+            recent.append(url.path)
+            UserDefaults.standard.set(recent, forKey: "studio.peachtree.annotateease.recent")
         }
     }
 }

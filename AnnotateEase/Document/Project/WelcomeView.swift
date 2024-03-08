@@ -10,35 +10,76 @@ import SwiftUI
 
 struct WelcomeView: View {
     @Environment(\.dismiss) var dismiss
+    @State var recent: [URL] = []
     var body: some View {
         VStack{
-            VStack(alignment: .leading){
-                Text("AnnotateEase")
-                    .font(.system(size: 40,weight: .bold))
-                Text("Easily and quickly label text data.")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
+            HStack{
+                VStack(alignment: .leading){
+                    Text("AnnotateEase")
+                        .font(.system(size: 40,weight: .bold))
+                    Text("Easily and quickly label text data.")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom)
+                    
+                    Button(action: {
+                        NSWorkspace.shared.open(URL(string: "AnnotateEase://create")!)
+                        self.dismiss()
+                    }, label: {
+                        Label("Create a new project", systemImage: "doc.badge.plus")
+                    })
+                    .buttonStyle(.link)
+                    Button(action: {
+                        self.openProject()
+                    }, label: {
+                        Label("Open an existing project", systemImage: "doc")
+                    })
+                    .buttonStyle(.link)
                     .padding(.bottom)
+                }
+                .fixedSize()
+                .padding(.trailing)
+                List{
+                    ForEach(self.recent,id: \.self.path){ url in
+                        VStack(alignment: .leading){
+                            Button(action: {
+                                if url.startAccessingSecurityScopedResource() {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }, label: {
+                                Text(url.lastPathComponent)
+                            })
+                            .buttonStyle(.link)
+                            Text(url.path)
+                                .font(.footnote)
+                        }
+                        .multilineTextAlignment(.leading)
+                        .frame(alignment:.init(horizontal: .leading, vertical: .center))
+                        .frame(maxWidth: .infinity)
+                        .listRowSeparator(.hidden)
+                        .padding()
+                        .background(Color.gray.opacity(0.3))
+                        .cornerRadius(8)
+                    }
+                }
                 
-                Button(action: {
-                    NSWorkspace.shared.open(URL(string: "AnnotateEase://create")!)
-                    self.dismiss()
-                }, label: {
-                    Label("Create a new project", systemImage: "doc.badge.plus")
-                })
-                .buttonStyle(.link)
-                Button(action: {
-                    self.openProject()
-                }, label: {
-                    Label("Open an existing project", systemImage: "doc")
-                })
-                .buttonStyle(.link)
-                .padding(.bottom)
+                .scrollContentBackground(.hidden)
+                .frame(width: 300)
+                .background(Color.clear)
             }
-            .fixedSize()
         }
         .padding()
         .frame(minWidth: 800,minHeight: 500, maxHeight: .infinity)
+        .onAppear{
+            self.loadRecent()
+        }
+    }
+    
+    func loadRecent() {
+        guard let recent:[String] = UserDefaults.standard.array(forKey: "studio.peachtree.annotateease.recent") as? [String] else {
+            return
+        }
+        self.recent = recent.reversed().compactMap{ URL(filePath: $0) }
     }
     
     func openProject() {
@@ -49,6 +90,10 @@ struct WelcomeView: View {
         panel.allowedContentTypes = [.annotateeaseProjectFile]
         if panel.runModal() == .OK, let url = panel.url {
             NSWorkspace.shared.open(url)
+            var recent:[String] = UserDefaults.standard.array(forKey: "studio.peachtree.annotateease.recent") as? [String] ?? [String]()
+            recent.removeAll { $0 == url.path }
+            recent.append(url.path)
+            UserDefaults.standard.set(recent, forKey: "studio.peachtree.annotateease.recent")
             self.dismiss()
         }
     }
