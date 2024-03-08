@@ -1,5 +1,4 @@
 # AnnotateEase
-## Easily and quickly label text data.
 
 AnnotateEase is the ultimate tool for effortlessly annotating text data on your Mac. With its intuitive interface and powerful features, AnnotateEase streamlines the process of text data annotation, making it a breeze to generate JSON files for use with Apple's CoreML.
 
@@ -17,6 +16,3 @@ AnnotateEase is the ultimate tool for effortlessly annotating text data on your 
 
 6. **Flexible Data Management:** Easily manage and organize your annotated data within AnnotateEase, ensuring efficiency and accessibility throughout the annotation process.
 
-Whether you're annotating text data for natural language processing, sentiment analysis, or any other machine learning task, AnnotateEase is your go-to solution for efficient and accurate annotation.
-
-Download AnnotateEase now and take the hassle out of text data annotation!
