@@ -12,8 +12,12 @@ struct DataTaggerApp: App {
     var body: some Scene {
         WindowGroup{
             WelcomeView()
+                .fixedSize()
         }
+        .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(.unified)
+        .windowToolbarStyle(.unifiedCompact(showsTitle: false))
         .handlesExternalEvents(matching: [])
         
         WindowGroup {

@@ -9,6 +9,8 @@
 			<integer>1</integer>
 			<key>CFBundleTypeName</key>
 			<string>AnnotateEase Project File</string>
+            <key>NSIsRelatedItemType</key>
+            <true/>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>

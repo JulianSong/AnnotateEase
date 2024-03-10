@@ -38,7 +38,7 @@ struct WelcomeView: View {
                     .padding(.bottom)
                 }
                 .fixedSize()
-                .padding(.trailing)
+                .padding(100)
                 List{
                     ForEach(self.recent,id: \.self.path){ url in
                         VStack(alignment: .leading){
@@ -48,28 +48,25 @@ struct WelcomeView: View {
                                 }
                             }, label: {
                                 Text(url.lastPathComponent)
+                                    .multilineTextAlignment(.leading)
                             })
                             .buttonStyle(.link)
                             Text(url.path)
                                 .font(.footnote)
+                                .multilineTextAlignment(.leading)
                         }
-                        .multilineTextAlignment(.leading)
-                        .frame(alignment:.init(horizontal: .leading, vertical: .center))
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity,alignment:.init(horizontal: .leading, vertical: .center))
                         .listRowSeparator(.hidden)
                         .padding()
                         .background(Color.gray.opacity(0.3))
                         .cornerRadius(8)
                     }
                 }
-                
-                .scrollContentBackground(.hidden)
+                .ignoresSafeArea()
                 .frame(width: 300)
-                .background(Color.clear)
             }
         }
-        .padding()
-        .frame(minWidth: 800,minHeight: 500, maxHeight: .infinity)
+        .frame(height: 500)
         .onAppear{
             self.loadRecent()
         }
@@ -79,7 +76,7 @@ struct WelcomeView: View {
         guard let recent:[String] = UserDefaults.standard.array(forKey: "studio.peachtree.annotateease.recent") as? [String] else {
             return
         }
-        self.recent = recent.reversed().compactMap{ URL(filePath: $0) }
+        self.recent = recent.reversed().compactMap{ URL(fileURLWithPath: $0) }
     }
     
     func openProject() {

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		7860C4282A0D30CC00C6DD25 /* WrappingStack in Frameworks */ = {isa = PBXBuildFile; productRef = 7860C4272A0D30CC00C6DD25 /* WrappingStack */; };
+		B90A37A02B9C159500E10665 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = B90A379F2B9C159500E10665 /* README.md */; };
 		B91882C92B970AA200CBB0C8 /* CreateDatasetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91882C82B970AA200CBB0C8 /* CreateDatasetView.swift */; };
 		B91882CD2B987BAF00CBB0C8 /* LocalizedAlertError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91882CC2B987BAF00CBB0C8 /* LocalizedAlertError.swift */; };
 		B9709BCF2B96F5F100917DAF /* LabelViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9709BCE2B96F5F100917DAF /* LabelViews.swift */; };
@@ -23,6 +24,7 @@
 
 /* Begin PBXFileReference section */
 		7860C3F62A0D141100C6DD25 /* AnnotateEase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AnnotateEase.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B90A379F2B9C159500E10665 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B91882C82B970AA200CBB0C8 /* CreateDatasetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateDatasetView.swift; sourceTree = "<group>"; };
 		B91882CC2B987BAF00CBB0C8 /* LocalizedAlertError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedAlertError.swift; sourceTree = "<group>"; };
 		B9709BCE2B96F5F100917DAF /* LabelViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelViews.swift; sourceTree = "<group>"; };
@@ -52,6 +54,7 @@
 		7860C3ED2A0D141100C6DD25 = {
 			isa = PBXGroup;
 			children = (
+				B90A379F2B9C159500E10665 /* README.md */,
 				B99668A12B12DB5700EF9BA2 /* AnnotateEase */,
 				7860C3F72A0D141100C6DD25 /* Products */,
 				7860C4292A0D30EC00C6DD25 /* Frameworks */,
@@ -223,6 +226,7 @@
 			files = (
 				B99668AE2B12DB5700EF9BA2 /* Preview Assets.xcassets in Resources */,
 				B99668AD2B12DB5700EF9BA2 /* Assets.xcassets in Resources */,
+				B90A37A02B9C159500E10665 /* README.md in Resources */,
 				B99668B02B12DB5700EF9BA2 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
