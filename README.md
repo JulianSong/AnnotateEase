@@ -1,7 +1,7 @@
 # AnnotateEase
 
 <div align="center"><h1> Easily and quickly label text data.</h1></div>
-<div align="center"><img src="https://github.com/JulianSong/annotateease/blob/master/screenshots/screenshot1.png" alt="图片alt" title="图片title"></div>
+<div align="center"><img src="https://github.com/JulianSong/AnnotateEase/blob/main/Screenshots/screenshot1.png" alt="图片alt" title="图片title"></div>
 
 # Key Features
 
