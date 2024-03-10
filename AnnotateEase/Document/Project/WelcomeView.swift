@@ -15,8 +15,9 @@ struct WelcomeView: View {
         VStack{
             HStack{
                 VStack(alignment: .leading){
-                    Text("AnnotateEase")
-                        .font(.system(size: 40,weight: .bold))
+                    Image("AnnotateEase", bundle: .main)
+                        .padding(.bottom,30)
+                        .shadow(color: Color.black.opacity(0.2), radius: 30,x: 8,y: 14)
                     Text("Easily and quickly label text data.")
                         .font(.title2)
                         .foregroundColor(.secondary)
