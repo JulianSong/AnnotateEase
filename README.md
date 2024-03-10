@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/JulianSong/AnnotateEase/blob/main/Screenshots/logo.png">
+  <img src="https://github.com/JulianSong/AnnotateEase/blob/main/Screenshots/logo.png" height="150">
   <h3>Easily and quickly label text data.</h3>
 </div>
 <div align="center"><img src="https://github.com/JulianSong/AnnotateEase/blob/main/Screenshots/screenshot1.png"></div>
