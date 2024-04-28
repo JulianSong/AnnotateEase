@@ -14,29 +14,29 @@ struct WelcomeView: View {
     var body: some View {
         VStack{
             HStack{
-                VStack(alignment: .leading){
+                VStack(alignment: .center){
                     Image("AnnotateEase", bundle: .main)
                         .padding(.bottom,30)
                         .shadow(color: Color.black.opacity(0.2), radius: 30,x: 8,y: 14)
-                    Text("Easily and quickly label text data.")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
+                    VStack(alignment: .leading){
+                        Text("Easily and quickly label text data.")
+                            .font(.title)
+                            .padding(.bottom)                        
+                        Button(action: {
+                            NSWorkspace.shared.open(URL(string: "AnnotateEase://create")!)
+                            self.dismiss()
+                        }, label: {
+                            Label("Create a new project", systemImage: "doc.badge.plus")
+                        })
+                        .buttonStyle(.link)
+                        Button(action: {
+                            self.openProject()
+                        }, label: {
+                            Label("Open an existing project", systemImage: "doc")
+                        })
+                        .buttonStyle(.link)
                         .padding(.bottom)
-                    
-                    Button(action: {
-                        NSWorkspace.shared.open(URL(string: "AnnotateEase://create")!)
-                        self.dismiss()
-                    }, label: {
-                        Label("Create a new project", systemImage: "doc.badge.plus")
-                    })
-                    .buttonStyle(.link)
-                    Button(action: {
-                        self.openProject()
-                    }, label: {
-                        Label("Open an existing project", systemImage: "doc")
-                    })
-                    .buttonStyle(.link)
-                    .padding(.bottom)
+                    }
                 }
                 .fixedSize()
                 .padding(100)

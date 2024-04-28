@@ -43,39 +43,54 @@ class DatasetViewModel: ObservableObject, Identifiable {
     @Published var labels: [LabelViewModel] = []
 }
 
+enum TextShowMode:String, CaseIterable {
+    case text,sentence
+}
+
 class HomeViewModel: ObservableObject {
     static let tags: Set<NLTag> = [.whitespace, .paragraphBreak]
-    var prjectFilePath: URL?
-    var projectPath: URL?
-    @Published var sideBarSelection:String?
     @Published var project: Project?
-    @Published var mutilineMode = false {
-        didSet {
-            self.project?.mutilineMode = self.mutilineMode
-            try? self.saveProject()
-        }
-    }
-
     @Published var currentDataset: Project.Dataset? {
         didSet {
             self.project?.currentDataset = self.currentDataset?.title
-            try? self.saveProject()
-            if let _currentDataset = self.currentDataset {
-                try? self.loadDataset(dataset: _currentDataset)
-                self.sideBarSelection = self.sideBarSelection
-                self.labels = _currentDataset.labels.map{ LabelViewModel(label: $0) }
+            do {
+                try self.saveProject()
+                if let _currentDataset = self.currentDataset {
+                    try self.loadDataset(dataset: _currentDataset)
+                }
+            }catch{
+                print(error)
             }
         }
     }
-
-    var currentDatasetPath: URL? {
-        guard let _currentDataset = self.currentDataset else {
-            return nil
-        }
-        return self.projectPath?.appending(component: _currentDataset.file)
-    }
-
     @Published var datas: [DataTagWrapper] = []
+    @Published var sentences: [String] = []
+    @Published var selectedSentenceIndex:Int? {
+        didSet{
+            do {
+                guard let index = self.selectedSentenceIndex, index >= self.sentences.startIndex, index < self.sentences.endIndex else {
+                    self.currentDataset?.selectedSentenceIndex = nil
+                    try self.saveProject()
+                    return
+                }
+                self.currentDataset?.selectedSentenceIndex = index
+                try self.saveProject()
+                self.selectSentence = self.sentences[index]
+            }catch{
+                print(error)
+            }
+        }
+    }
+    @Published var selectSentence: String? {
+        didSet {
+            guard let selectSentence = self.selectSentence else { return }
+            self.splitWords(text: selectSentence)
+        }
+    }
+    @Published var lexical: [String] = []
+    @Published var pairs: [DataTagPairModel] = []
+    @Published var labels: [LabelViewModel] = []
+    @Published var textShowMode:TextShowMode = .text
     @Published var text: String = "" {
         didSet {
             if !self.mutilineMode {
@@ -90,33 +105,35 @@ class HomeViewModel: ObservableObject {
             }
         }
     }
-    
-    @Published var sentences: [String] = []
-    @Published var selectedSentenceIndex:Int? {
-        didSet{
-            guard let index = self.selectedSentenceIndex, index >= self.sentences.startIndex, index < self.sentences.endIndex else {
-                self.currentDataset?.selectedSentenceIndex = nil
-                try? self.saveProject()
-                return
-            }
-            self.currentDataset?.selectedSentenceIndex = index
-            try? self.saveProject()
-            self.selectSentence = self.sentences[index]
-        }
-    }
-    @Published var selectSentence: String? {
-        didSet {
-            guard let selectSentence = self.selectSentence else { return }
-            self.splitWords(text: selectSentence)
-        }
-    }
-    @Published var lexical: [String] = []
-    @Published var pairs: [DataTagPairModel] = []
-    @Published var labels: [LabelViewModel] = []
 
+    @Published var mutilineMode = false {
+        didSet {
+            self.project?.mutilineMode = self.mutilineMode
+            if self.mutilineMode {
+                self.splitSentence()
+                self.lexical.removeAll()
+            }else{
+                self.splitWords(text: self.text)
+            }
+            do {
+                try self.saveProject()
+            }catch {
+                print(error)
+            }
+        }
+    }
+
+    var prjectFilePath: URL?
+    var projectPath: URL?
     var usedLexical: [String] = []
     var pair: DataTagPairModel?
-
+    var currentDatasetPath: URL? {
+        guard let _currentDataset = self.currentDataset else {
+            return nil
+        }
+        return self.projectPath?.appending(component: _currentDataset.file)
+    }
+    
     init() {
         self.loadProject()
     }
@@ -150,15 +167,32 @@ class HomeViewModel: ObservableObject {
     }
 
     func loadDataset(dataset: Project.Dataset) throws {
-        guard let _prjectFilePath = self.prjectFilePath, let _projectPath = self.projectPath else { return }
+        guard let _prjectFilePath = self.prjectFilePath, let _projectPath = self.projectPath else {
+            return
+        }
         let datsetPath = _projectPath.appending(component: dataset.file)
-        let jsonData = try Data(contentsOf: datsetPath)
-        self.datas = try JSONDecoder().decode([DataTag].self, from: jsonData).map { DataTagWrapper(tag: $0) }
+        if FileManager.default.fileExists(atPath: datsetPath.path) {
+            let jsonData = try Data(contentsOf: datsetPath)
+            self.datas = try JSONDecoder().decode([DataTag].self, from: jsonData).map { DataTagWrapper(tag: $0) }
+        }else{
+            self.datas.removeAll()
+        }
+
         if let textFileName = dataset.textFile {
             let textFilePath = _prjectFilePath.appending(component: "Texts").appending(component: textFileName).appendingPathExtension("txt")
-            self.text = try String(contentsOf: textFilePath, encoding: .utf8)
-            self.selectedSentenceIndex = dataset.selectedSentenceIndex
+            if FileManager.default.fileExists(atPath: textFilePath.path) {
+                self.text = try String(contentsOf: textFilePath, encoding: .utf8)
+                self.selectedSentenceIndex = dataset.selectedSentenceIndex
+            }else{
+                self.text = ""
+                self.selectedSentenceIndex = 0
+            }
+        }else{
+            self.text = ""
+            self.selectedSentenceIndex = 0
         }
+        
+        self.labels = dataset.labels.map{ LabelViewModel(label: $0) }
     }
 
     func saveProject() throws {
@@ -359,15 +393,11 @@ struct LabelsTitleColumn: View {
 }
 
 struct HomeView: View {
-    enum TextShowMode:String, CaseIterable {
-        case text,sentence
-    }
     @StateObject var viewModel = HomeViewModel()
-    @State var textShowMode:TextShowMode = .text
     @State var showProjectCreateView:Bool = false
     @State var showDatasetCreateView:Bool = false
     var datasets: some View {
-        List(selection: $viewModel.sideBarSelection) {
+        List(selection: $viewModel.currentDataset) {
             if let projectName = self.viewModel.project?.projectName {
                 HStack{
                     Image(systemName: "doc.text")
@@ -397,7 +427,7 @@ struct HomeView: View {
                         .onTapGesture {
                             self.viewModel.currentDataset = dataset
                         }
-                        .tag(dataset.title)
+                        .tag(dataset)
                 }
             }
         }
@@ -444,14 +474,14 @@ struct HomeView: View {
         .frame(minWidth: 400, maxHeight: .infinity)
     }
 
-    var content: some View {
+    var textContent: some View {
         VStack {
             HStack {
                 Text("Text")
                     .foregroundColor(.secondary)
                 Spacer()
                 if self.viewModel.mutilineMode {
-                    Picker("", selection: $textShowMode) {
+                    Picker("", selection: $viewModel.textShowMode) {
                         ForEach(TextShowMode.allCases,id:\.rawValue) {
                             Text($0.rawValue)
                                 .tag($0)
@@ -465,12 +495,13 @@ struct HomeView: View {
                     Text("Mutiline Mode")
                 }
             }
+            .frame(height: 20)
             VStack {
-                if textShowMode == .text {
+                if self.viewModel.textShowMode == .text || !self.viewModel.mutilineMode {
                     TextEditor(text: $viewModel.text)
                         .background(Color.clear)
                         .font(.body)
-                        .frame(minWidth: 300, maxWidth: .infinity, minHeight: 100, maxHeight: self.viewModel.mutilineMode ? .infinity : 140)
+                        .lineSpacing(5)
                 }else{
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 0){
@@ -504,14 +535,15 @@ struct HomeView: View {
                     }
                 }
             }
+            .frame(minWidth: 300, maxWidth: .infinity, minHeight: 100, maxHeight: self.viewModel.mutilineMode ? .infinity : 140)
             .padding(4)
             .background(Color(.controlBackgroundColor))
         }
     }
 
-    var mutilineContent: some View {
+    var mutilineTextContent: some View {
         VStack(spacing: 0) {
-            content
+            textContent
                 .padding(EdgeInsets(top: 8, leading: 16, bottom: 16, trailing: 16))
                 .frame(maxHeight: .infinity)
             Divider()
@@ -528,6 +560,7 @@ struct HomeView: View {
                     Image(systemName: "chevron.up")
                 }
                 .buttonStyle(.plain)
+                .keyboardShortcut(.upArrow,modifiers: [.command])
                 Text("\((self.viewModel.selectedSentenceIndex ?? -1) + 1)")
                 Button {
                     guard
@@ -539,22 +572,22 @@ struct HomeView: View {
                     Image(systemName: "chevron.down")
                 }
                 .buttonStyle(.plain)
+                .keyboardShortcut(.downArrow,modifiers: [.command])
             }
             .frame(height: 40)
             .padding(.horizontal, 16)
         }
-        .padding(0)
-        .frame(minWidth: 300, maxHeight: .infinity)
     }
     
     var editor: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading) {
                 if !viewModel.mutilineMode {
-                    content
+                    textContent
                 }
                 Text("Lexical")
                     .foregroundColor(.secondary)
+                    .frame(height: 20)
                 VStack {
                     WrappingHStack(id: \.self,
                                    alignment: .topLeading,
@@ -588,6 +621,7 @@ struct HomeView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .frame(height: 20)
                 Table(of: DataTagPairModel.self) {
                     TableColumn("Token") { pari in
                         NewPairTokenColumn(viewModel: pari)
@@ -634,6 +668,7 @@ struct HomeView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .frame(height: 20)
                 Table(of: LabelViewModel.self) {
                     TableColumn("Label") { label in
                         LabelsLabelColumn(viewModel:label)
@@ -665,7 +700,7 @@ struct HomeView: View {
             HSplitView {
                 dataList
                 if viewModel.mutilineMode {
-                    mutilineContent
+                    mutilineTextContent
                 }
                 editor
             }
@@ -675,6 +710,7 @@ struct HomeView: View {
             inspector
                 .inspectorColumnWidth(min: 300, ideal: 350, max: 400)
         }
+        .frame(maxHeight: .infinity)
         .frame(maxHeight: .infinity)
         .sheet(isPresented:  $showProjectCreateView){
             CreateView()

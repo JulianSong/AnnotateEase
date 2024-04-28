@@ -9,7 +9,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 class Project: Codable {
-    class Dataset: Codable {
+    class Dataset: Codable, Hashable {
         struct Label: Codable,Identifiable,Equatable {
             var id: String = UUID().uuidString
             let label:String
@@ -36,6 +36,16 @@ class Project: Codable {
             self.textFile = textFile
             self.mutilineMode = mutilineMode
             self.selectedSentenceIndex = selectedSentenceIndex
+        }
+        
+        static func == (lhs: Project.Dataset, rhs: Project.Dataset) -> Bool {
+            return lhs.hashValue == rhs.hashValue
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(self.title)
+            hasher.combine(self.type)
+            hasher.combine(self.file)
         }
     }
     
@@ -74,19 +84,5 @@ struct DataTagWrapper: Identifiable {
 
 extension UTType {
     static var annotateeaseProjectFile = UTType(exportedAs: "studio.peachtree.annotateease.aegr")
-}
-
-final public class DatataggerDocument: NSDocument {
-    public override class func canConcurrentlyReadDocuments(ofType typeName: String) -> Bool {
-        return typeName == UTType.annotateeaseProjectFile.identifier
-    }
-    
-    public override nonisolated func read(from url: URL, ofType typeName: String) throws {
-        
-    }
-    
-    public override func makeWindowControllers() {
-        
-    }
 }
 

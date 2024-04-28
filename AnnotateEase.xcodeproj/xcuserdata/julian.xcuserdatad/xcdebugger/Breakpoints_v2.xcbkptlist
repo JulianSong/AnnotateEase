@@ -18,53 +18,6 @@
             endingLineNumber = "93"
             landmarkName = "openFile()"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "496D52A4-85B2-4EE8-B50D-E4FCD3DE239D - 20ee7abbe20b82fa"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "AnnotateEase.CreateView.create() -&gt; ()"
-                  moduleName = "AnnotateEase"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/julian/SynologyDrive/EnglishCoreML/AnnotateEase/AnnotateEase/Document/CreateView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "88"
-                  endingLineNumber = "88"
-                  offsetFromSymbolStart = "550">
-               </Location>
-               <Location
-                  uuid = "496D52A4-85B2-4EE8-B50D-E4FCD3DE239D - 4efff609c989325d"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "AnnotateEase.CreateView.openFile() -&gt; ()"
-                  moduleName = "AnnotateEase"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/julian/SynologyDrive/EnglishCoreML/AnnotateEase/AnnotateEase/Document/CreateView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "87"
-                  endingLineNumber = "87"
-                  offsetFromSymbolStart = "988">
-               </Location>
-               <Location
-                  uuid = "496D52A4-85B2-4EE8-B50D-E4FCD3DE239D - 4efff609c989321b"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "AnnotateEase.CreateView.openFile() -&gt; ()"
-                  moduleName = "AnnotateEase"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/julian/SynologyDrive/EnglishCoreML/AnnotateEase/AnnotateEase/Document/CreateView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "89"
-                  endingLineNumber = "89"
-                  offsetFromSymbolStart = "988">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
