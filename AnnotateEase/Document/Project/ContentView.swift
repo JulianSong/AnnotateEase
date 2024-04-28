@@ -10,7 +10,6 @@ import SwiftUI
 import UniformTypeIdentifiers
 import WrappingStack
 
-
 class DataTagPairModel: ObservableObject, Identifiable {
     let id: String = UUID().uuidString
     @Published var lexical: [String] = []
@@ -43,23 +42,58 @@ class DatasetViewModel: ObservableObject, Identifiable {
     @Published var labels: [LabelViewModel] = []
 }
 
-enum TextShowMode:String, CaseIterable {
-    case text,sentence
+extension String {
+    func splitSentence() async -> [Self] {
+        let tags: Set<NLTag> = [.whitespace, .paragraphBreak]
+        var result: [String] = []
+        let tagger = NLTagger(tagSchemes: [.lexicalClass])
+        tagger.string = self
+        tagger.enumerateTags(in: self.startIndex ..< self.endIndex, unit: .sentence, scheme: .lexicalClass) { tag, tokenRange -> Bool in
+            if let _tag = tag, !tags.contains(_tag) {
+                result.append(String(self[tokenRange]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
+            }
+            return true
+        }
+        return result
+    }
+    
+    func splitWords() async -> [Self] {
+        let tags: Set<NLTag> = [.whitespace, .paragraphBreak]
+        var result: [String] = []
+        let tagger = NLTagger(tagSchemes: [.lexicalClass])
+        tagger.string = self
+        tagger.enumerateTags(in: self.startIndex ..< self.endIndex, unit: .word, scheme: .lexicalClass,options: .joinContractions) { tag, tokenRange -> Bool in
+            if let _tag = tag, !tags.contains(_tag) {
+                result.append(String(self[tokenRange]))
+            }
+            return true
+        }
+        return result
+    }
 }
 
+@MainActor
 class HomeViewModel: ObservableObject {
-    static let tags: Set<NLTag> = [.whitespace, .paragraphBreak]
     @Published var project: Project?
     @Published var currentDataset: Project.Dataset? {
         didSet {
             self.project?.currentDataset = self.currentDataset?.title
-            do {
-                try self.saveProject()
-                if let _currentDataset = self.currentDataset {
-                    try self.loadDataset(dataset: _currentDataset)
+            self.mutilineMode = self.currentDataset?.mutilineMode ?? self.mutilineMode
+            self.textShowMode = self.currentDataset?.textShowMode ?? self.textShowMode
+            Task{
+                do {
+                    try await self.saveProject()
+                    if let _currentDataset = self.currentDataset {
+                        try await self.loadDataset(dataset: _currentDataset)
+                    }else{
+                        self.pairs.removeAll()
+                        self.lexical.removeAll()
+                        self.labels.removeAll()
+                        self.datas.removeAll()
+                    }
+                }catch{
+                    print(error)
                 }
-            }catch{
-                print(error)
             }
         }
     }
@@ -67,58 +101,77 @@ class HomeViewModel: ObservableObject {
     @Published var sentences: [String] = []
     @Published var selectedSentenceIndex:Int? {
         didSet{
-            do {
-                guard let index = self.selectedSentenceIndex, index >= self.sentences.startIndex, index < self.sentences.endIndex else {
-                    self.currentDataset?.selectedSentenceIndex = nil
-                    try self.saveProject()
-                    return
+            Task{
+                do {
+                    guard let index = self.selectedSentenceIndex, index >= self.sentences.startIndex, index < self.sentences.endIndex else {
+                        self.currentDataset?.selectedSentenceIndex = nil
+                        try await self.saveProject()
+                        return
+                    }
+                    self.currentDataset?.selectedSentenceIndex = index
+                    try await self.saveProject()
+                    self.selectSentence = self.sentences[index]
+                }catch{
+                    print(error)
                 }
-                self.currentDataset?.selectedSentenceIndex = index
-                try self.saveProject()
-                self.selectSentence = self.sentences[index]
-            }catch{
-                print(error)
             }
         }
     }
     @Published var selectSentence: String? {
         didSet {
-            guard let selectSentence = self.selectSentence else { return }
-            self.splitWords(text: selectSentence)
+            Task{
+                guard let selectSentence = self.selectSentence else { return }
+                await self.splitWords(text: selectSentence)
+            }
         }
     }
     @Published var lexical: [String] = []
     @Published var pairs: [DataTagPairModel] = []
     @Published var labels: [LabelViewModel] = []
-    @Published var textShowMode:TextShowMode = .text
+    @Published var textShowMode:Project.Dataset.TextShowMode = .text {
+        didSet {
+            Task{
+                do {
+                    self.currentDataset?.textShowMode = self.textShowMode
+                    try await self.saveProject()
+                } catch {
+                    print(error)
+                }
+            }
+        }
+    }
     @Published var text: String = "" {
         didSet {
-            if !self.mutilineMode {
-                self.splitWords(text: self.text)
-            }else{
-                self.splitSentence()
-            }
-            do {
-                try self.saveText()
-            } catch {
-                print(error)
+            Task{
+                if !self.mutilineMode {
+                    await self.splitWords(text: self.text)
+                }else{
+                    await self.splitSentence()
+                }
+                do {
+                    try await self.saveText()
+                } catch {
+                    print(error)
+                }
             }
         }
     }
 
     @Published var mutilineMode = false {
         didSet {
-            self.project?.mutilineMode = self.mutilineMode
-            if self.mutilineMode {
-                self.splitSentence()
-                self.lexical.removeAll()
-            }else{
-                self.splitWords(text: self.text)
-            }
-            do {
-                try self.saveProject()
-            }catch {
-                print(error)
+            Task{
+                if self.mutilineMode {
+                    await self.splitSentence()
+                    self.lexical.removeAll()
+                }else{
+                    await self.splitWords(text: self.text)
+                }
+                do {
+                    self.currentDataset?.mutilineMode = self.mutilineMode
+                    try await self.saveProject()
+                }catch {
+                    print(error)
+                }
             }
         }
     }
@@ -152,64 +205,57 @@ class HomeViewModel: ObservableObject {
 
     func loadProject() {
         guard let _prjectFilePath = self.prjectFilePath else { return }
-        do {
-            let projectData = try Data(contentsOf: _prjectFilePath.appending(component: "Content.json"))
-            self.projectPath = _prjectFilePath.deletingLastPathComponent()
-            self.project = try JSONDecoder().decode(Project.self, from: projectData)
-            self.mutilineMode = self.project?.mutilineMode ?? false
-            self.currentDataset = self.project?.datasets.first{ self.project?.currentDataset == $0.title }
-            if let _currentDataset = self.currentDataset {
-                try self.loadDataset(dataset: _currentDataset)
+        Task{
+            do {
+                let projectData = try Data(contentsOf: _prjectFilePath.appending(component: "Content.json"))
+                self.projectPath = _prjectFilePath.deletingLastPathComponent()
+                self.project = try JSONDecoder().decode(Project.self, from: projectData)
+                self.currentDataset = self.project?.datasets.first{ self.project?.currentDataset == $0.title }
+                if let _currentDataset = self.currentDataset {
+                    try await self.loadDataset(dataset: _currentDataset)
+                }
+            } catch {
+                print(error)
             }
-        } catch {
-            print(error)
         }
     }
 
-    func loadDataset(dataset: Project.Dataset) throws {
-        guard let _prjectFilePath = self.prjectFilePath, let _projectPath = self.projectPath else {
-            return
-        }
-        let datsetPath = _projectPath.appending(component: dataset.file)
-        if FileManager.default.fileExists(atPath: datsetPath.path) {
-            let jsonData = try Data(contentsOf: datsetPath)
-            self.datas = try JSONDecoder().decode([DataTag].self, from: jsonData).map { DataTagWrapper(tag: $0) }
-        }else{
-            self.datas.removeAll()
-        }
-
-        if let textFileName = dataset.textFile {
-            let textFilePath = _prjectFilePath.appending(component: "Texts").appending(component: textFileName).appendingPathExtension("txt")
-            if FileManager.default.fileExists(atPath: textFilePath.path) {
-                self.text = try String(contentsOf: textFilePath, encoding: .utf8)
-                self.selectedSentenceIndex = dataset.selectedSentenceIndex
-            }else{
-                self.text = ""
-                self.selectedSentenceIndex = 0
-            }
-        }else{
+    func loadDataset(dataset: Project.Dataset) async throws {
+        guard 
+            let _prjectFilePath = self.prjectFilePath,
+            let _projectPath = self.projectPath,
+            let textFileName = dataset.textFile
+        else {
+            self.datas = []
             self.text = ""
             self.selectedSentenceIndex = 0
-        }
-        
-        self.labels = dataset.labels.map{ LabelViewModel(label: $0) }
-    }
-
-    func saveProject() throws {
-        guard let _prjectFilePath = self.prjectFilePath, let project = self.project else {
+            self.labels = dataset.labels.map{ LabelViewModel(label: $0) }
             return
         }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        try encoder.encode(project).write(to: _prjectFilePath.appending(component: "Content.json"))
+        self.labels = dataset.labels.map{ LabelViewModel(label: $0) }
+            let textFilePath = _prjectFilePath.appending(component: "Texts").appending(component: textFileName).appendingPathExtension("txt")
+        
+        async let text = Project.Dataset.text(textFilePath: textFilePath) ?? ""
+        async let datas = Project.Dataset.tags(datsetPath: _projectPath.appending(component: dataset.file)) ?? []
+        let result = try await [datas,text] as [Any]
+        self.datas = result.first as! [DataTagWrapper]
+        self.text = result.last as! String
+        self.selectedSentenceIndex = dataset.selectedSentenceIndex
     }
 
-    func saveLabels() {
+    func saveProject() async throws {
+        guard let _prjectFilePath = self.prjectFilePath else {
+            return
+        }
+        try await self.project?.save(to: _prjectFilePath)
+    }
+
+    func saveLabels() async throws {
         self.currentDataset?.labels = self.labels.map{ $0.label }
-        try? self.saveProject()
+        try await self.saveProject()
     }
     
-    func saveText() throws {
+    func saveText() async throws {
         guard let _prjectFilePath = self.prjectFilePath, let _currentDataset = self.currentDataset else { return }
         let textFileName = _currentDataset.textFile ?? UUID().uuidString
         let textsPath = _prjectFilePath.appending(component: "Texts")
@@ -219,40 +265,21 @@ class HomeViewModel: ObservableObject {
         let textFilePath = _prjectFilePath.appending(component: "Texts").appending(component: textFileName).appendingPathExtension("txt")
         try self.text.write(to: textFilePath, atomically: true, encoding: .utf8)
         _currentDataset.textFile = textFileName
-        try self.saveProject()
+        try await self.saveProject()
     }
 
-    func splitSentence() {
-        let text = self.text
-        var result: [String] = []
-        let tagger = NLTagger(tagSchemes: [.lexicalClass])
-        tagger.string = text
-        tagger.enumerateTags(in: text.startIndex ..< text.endIndex, unit: .sentence, scheme: .lexicalClass) { tag, tokenRange -> Bool in
-            if let _tag = tag, !HomeViewModel.tags.contains(_tag) {
-                result.append(String(text[tokenRange]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
-            }
-            return true
-        }
-        self.sentences = result
+    func splitSentence() async {
+        self.sentences = await self.text.splitSentence()
     }
     
-    func splitWords(text: String) {
-        var result: [String] = []
-        let tagger = NLTagger(tagSchemes: [.lexicalClass])
-        tagger.string = text
-        tagger.enumerateTags(in: text.startIndex ..< text.endIndex, unit: .word, scheme: .lexicalClass,options: .joinContractions) { tag, tokenRange -> Bool in
-            if let _tag = tag, !HomeViewModel.tags.contains(_tag) {
-                result.append(String(text[tokenRange]))
-            }
-            return true
-        }
-        self.lexical = result
+    func splitWords(text: String)  async {
+        self.lexical = await text.splitWords()
         self.pairs.removeAll(keepingCapacity: true)
         self.usedLexical.removeAll(keepingCapacity: true)
         self.pair = nil
     }
 
-    func add(lexical: String) {
+    func add(lexical: String)  {
         guard !self.usedLexical.contains(lexical) else {
             return
         }
@@ -297,6 +324,22 @@ class HomeViewModel: ObservableObject {
         } catch {
             debugPrint(error)
         }
+    }
+    
+    func deleteDataset(dataset: Project.Dataset) async throws {
+        do{
+            self.project?.datasets.removeAll{ ds in
+                ds == dataset
+            }
+            try await self.saveProject()
+            if self.currentDataset == dataset{
+                self.currentDataset = nil
+                self.currentDataset = self.project?.datasets.first
+            }
+        }catch{
+            throw error
+        }
+
     }
 }
 
@@ -350,7 +393,9 @@ struct LabelsLabelColumn: View {
             .focused($isFocused)
             .onChange(of: isFocused) { isFocused in
                 guard !isFocused && !viewModel.labelText.isEmpty && !viewModel.title.isEmpty else { return }
-                self.editModel.saveLabels()
+                Task{
+                    try? await self.editModel.saveLabels()
+                }
             }
             .frame(maxWidth: .infinity)
             Spacer()
@@ -373,13 +418,17 @@ struct LabelsTitleColumn: View {
             .focused($isFocused)
             .onChange(of: isFocused) { isFocused in
                 guard !isFocused && !viewModel.labelText.isEmpty && !viewModel.title.isEmpty else { return }
-                self.editModel.saveLabels()
+                Task{
+                    try? await self.editModel.saveLabels()
+                }
             }
             .frame(maxWidth: .infinity)
             Spacer()
             Button {
                 self.editModel.labels.removeAll(where: { $0.id == viewModel.id })
-                self.editModel.saveLabels()
+                Task{
+                    try? await self.editModel.saveLabels()
+                }
             } label: {
                 Image(systemName: "trash")
             }
@@ -405,33 +454,58 @@ struct HomeView: View {
                     Text(projectName)
                 }
             }
-            HStack {
-                Text("Datasets")
-                    .foregroundColor(.secondary)
-                Spacer()
-                Button {
-                    self.showDatasetCreateView.toggle()
-                } label: {
-                    Image(systemName: "plus")
+            Section{
+                if let project = self.viewModel.project {
+                    ForEach(project.datasets, id: \.title) { dataset in
+                        Text(dataset.title)
+                            .onTapGesture {
+                                self.viewModel.currentDataset = dataset
+                            }
+                            .tag(dataset)
+                            .contextMenu {
+                                Button(action: {
+                                    guard let projectPath = self.viewModel.projectPath else {
+                                        return
+                                    }
+                                    let datsetPath = projectPath.appending(component: dataset.file)
+                                    NSWorkspace.shared.selectFile(datsetPath.path, inFileViewerRootedAtPath: projectPath.path)
+                                }, label: {
+                                    Text("Show In Finder")
+                                })
+                                Divider()
+                                Button(action: {
+                                    Task{
+                                        try? await self.viewModel.deleteDataset(dataset: dataset)
+                                    }
+                                }, label: {
+                                    Text("Delete")
+                                })
+                            }
+                    }
                 }
-                .buttonStyle(.plain)
-                .sheet(isPresented: $showDatasetCreateView) {
-                    CreateDatasetView()
-                        .environmentObject(self.viewModel)
+            } header: {
+                HStack {
+                    Text("Datasets")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Button {
+                        self.showDatasetCreateView.toggle()
+                    } label: {
+                        Image(systemName: "plus")
+                            .frame(width: 30)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(self.viewModel.project == nil)
                 }
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
-            if let project = self.viewModel.project {
-                ForEach(project.datasets, id: \.title) { dataset in
-                    Text(dataset.title)
-                        .onTapGesture {
-                            self.viewModel.currentDataset = dataset
-                        }
-                        .tag(dataset)
-                }
-            }
+            .collapsible(false)
         }
         .listStyle(.sidebar)
+        .sheet(isPresented: $showDatasetCreateView) {
+            CreateDatasetView()
+                .environmentObject(self.viewModel)
+        }
     }
     
     var dataList: some View {
@@ -482,7 +556,7 @@ struct HomeView: View {
                 Spacer()
                 if self.viewModel.mutilineMode {
                     Picker("", selection: $viewModel.textShowMode) {
-                        ForEach(TextShowMode.allCases,id:\.rawValue) {
+                        ForEach(Project.Dataset.TextShowMode.allCases,id:\.rawValue) {
                             Text($0.rawValue)
                                 .tag($0)
                         }
@@ -503,42 +577,47 @@ struct HomeView: View {
                         .font(.body)
                         .lineSpacing(5)
                 }else{
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 0){
-                            ForEach(Array(self.viewModel.sentences.enumerated()),id:\.offset) { index,sentence in
-                                HStack(alignment: .firstTextBaseline){
-                                    Text("\(index + 1)")
-                                        .font(.footnote)
-                                        .foregroundColor(Color.secondary)
-                                        .frame(minWidth: 20,alignment: .trailing)
-                                    Text(sentence)
-                                        .multilineTextAlignment(.leading)
-                                        .padding(2)
-                                        .frame(maxWidth: .infinity,alignment: .leading)
+                    ScrollViewReader{ proxy in
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 0){
+                                ForEach(Array(self.viewModel.sentences.enumerated()),id:\.offset) { index,sentence in
+                                    HStack(alignment: .firstTextBaseline){
+                                        Text("\(index + 1)")
+                                            .font(.footnote)
+                                            .foregroundColor(Color.secondary)
+                                            .frame(minWidth: 20,alignment: .trailing)
+                                        Text(sentence)
+                                            .multilineTextAlignment(.leading)
+                                            .padding(2)
+                                            .frame(maxWidth: .infinity,alignment: .leading)
+                                    }
+                                    .background(self.viewModel.selectedSentenceIndex == index ? Color.primary.opacity(0.1) : Color.clear )
+                                    .frame(maxWidth: .infinity,alignment: .leading)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        self.viewModel.selectedSentenceIndex = index
+                                    }
+                                    .contextMenu {
+                                        Button {
+                                            NSPasteboard.general.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
+                                            NSPasteboard.general.setString(sentence, forType: .string)
+                                        } label: {
+                                            Label("Copy", systemImage: "doc.on.doc")
+                                        }
+                                    }
+                                    .id(index)
                                 }
-                                .background(self.viewModel.selectedSentenceIndex == index ? Color.primary.opacity(0.1) : Color.clear )
-                                .frame(maxWidth: .infinity,alignment: .leading)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    self.viewModel.selectedSentenceIndex = index
-                                }
-                                .contextMenu {
-                                     Button {
-                                         NSPasteboard.general.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
-                                         NSPasteboard.general.setString(sentence, forType: .string)
-                                     } label: {
-                                         Label("Copy", systemImage: "doc.on.doc")
-                                     }
-                                 }
                             }
+                        }
+                        .onChange(of: self.viewModel.selectedSentenceIndex) { oldValue, newValue in
+                            proxy.scrollTo(newValue)
                         }
                     }
                 }
             }
             .frame(minWidth: 300, maxWidth: .infinity, minHeight: 100, maxHeight: self.viewModel.mutilineMode ? .infinity : 140)
             .padding(4)
-            .background(Color(.controlBackgroundColor))
-        }
+            .background(Color(.controlBackgroundColor))          }
     }
 
     var mutilineTextContent: some View {
@@ -559,7 +638,7 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "chevron.up")
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .keyboardShortcut(.upArrow,modifiers: [.command])
                 Text("\((self.viewModel.selectedSentenceIndex ?? -1) + 1)")
                 Button {
@@ -571,7 +650,7 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "chevron.down")
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .keyboardShortcut(.downArrow,modifiers: [.command])
             }
             .frame(height: 40)
@@ -588,24 +667,26 @@ struct HomeView: View {
                 Text("Lexical")
                     .foregroundColor(.secondary)
                     .frame(height: 20)
-                VStack {
-                    WrappingHStack(id: \.self,
-                                   alignment: .topLeading,
-                                   horizontalSpacing: 4,
-                                   verticalSpacing: 4) {
-                        ForEach(viewModel.lexical, id: \.self) { lexical in
-                            Text(lexical)
-                                .padding(2)
-                                .padding(.horizontal, 4)
-                                .foregroundColor(self.viewModel.usedLexical.contains(lexical) ? .secondary : .primary)
-                                .background(Color.primary.opacity(0.1))
-                                .cornerRadius(4)
-                                .onTapGesture {
-                                    self.viewModel.add(lexical: lexical)
-                                }
+                ScrollView{
+                    VStack {
+                        WrappingHStack(id: \.self,
+                                       alignment: .topLeading,
+                                       horizontalSpacing: 4,
+                                       verticalSpacing: 4) {
+                            ForEach(viewModel.lexical.indices, id: \.self) { index in
+                                Text(viewModel.lexical[index])
+                                    .padding(2)
+                                    .padding(.horizontal, 4)
+                                    .foregroundColor(self.viewModel.usedLexical.contains(viewModel.lexical[index]) ? .secondary : .primary)
+                                    .background(Color.primary.opacity(0.1))
+                                    .cornerRadius(4)
+                                    .onTapGesture {
+                                        self.viewModel.add(lexical: viewModel.lexical[index])
+                                    }
+                            }
                         }
+                        Spacer(minLength: 0)
                     }
-                    Spacer(minLength: 0)
                 }
                 .padding(4)
                 .frame(minHeight: 100, maxHeight: 140)
@@ -617,7 +698,7 @@ struct HomeView: View {
                     Button {
                         self.viewModel.clearParis()
                     } label: {
-                        Image(systemName: "xmark.bin")
+                        Image(systemName: "trash")
                     }
                     .buttonStyle(.plain)
                 }
@@ -646,6 +727,7 @@ struct HomeView: View {
                 } label: {
                     Text("Save")
                 }
+                .disabled(self.viewModel.project == nil)
             }
             .frame(height: 40)
             .padding(.horizontal, 16)
@@ -667,6 +749,7 @@ struct HomeView: View {
                         Image(systemName: "plus")
                     }
                     .buttonStyle(.plain)
+                    .disabled(self.viewModel.project == nil)
                 }
                 .frame(height: 20)
                 Table(of: LabelViewModel.self) {

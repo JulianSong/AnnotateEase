@@ -64,13 +64,15 @@ struct CreateDatasetView: View {
     func create() {
         let dataset = Project.Dataset(title: self.name, type: "text_word_tag", file: "\(self.name).json", labels: [])
         self.editModel.project?.datasets.append(dataset)
-        do {
-            try self.editModel.saveProject()
-            self.editModel.currentDataset = dataset
-            self.presentationMode.wrappedValue.dismiss()
-        } catch {
-            self.error = LocalizedAlertError(error: error)
-            self.showAlert.toggle()
+        Task{
+            do {
+                try await self.editModel.saveProject()
+                self.editModel.currentDataset = dataset
+                self.presentationMode.wrappedValue.dismiss()
+            } catch {
+                self.error = LocalizedAlertError(error: error)
+                self.showAlert.toggle()
+            }
         }
     }
 }

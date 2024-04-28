@@ -22,7 +22,7 @@ struct DataTaggerApp: App {
         
         WindowGroup {
             HomeView()
-                .frame(minWidth: 1100,maxWidth: .infinity, minHeight: 600,maxHeight: .infinity)
+                .frame(maxWidth: .infinity, minHeight: 600,maxHeight: .infinity)
                 .handlesExternalEvents(preferring: Set(arrayLiteral: "create"), allowing: Set(arrayLiteral: "create"))
                 .onAppear {
                     NSWindow.allowsAutomaticWindowTabbing = false

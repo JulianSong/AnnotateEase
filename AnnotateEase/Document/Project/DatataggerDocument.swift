@@ -21,11 +21,15 @@ class Project: Codable {
             }
             static func empty() -> Self { Label(label: "", title: "") }
         }
+        enum TextShowMode:String, CaseIterable,Codable {
+            case text,sentence
+        }
         let title:String
         let type:String
         let file:String
         var labels:[Project.Dataset.Label]
         var textFile:String?
+        var textShowMode: TextShowMode? = .text
         var mutilineMode: Bool? = false
         var selectedSentenceIndex:Int?
         init(title: String, type: String, file: String, labels: [Project.Dataset.Label], textFile: String? = nil, mutilineMode: Bool? = nil, selectedSentenceIndex: Int? = nil) {
@@ -53,9 +57,14 @@ class Project: Codable {
     var datasets:[Dataset] = []
     var openedDataSets:[String]?
     var currentDataset:String?
-    var mutilineMode: Bool? = true
     init(projectName:String) {
         self.projectName = projectName
+    }
+    
+    func save(to url: URL) async throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        try encoder.encode(self).write(to: url.appending(component: "Content.json"))
     }
 }
 
@@ -86,3 +95,19 @@ extension UTType {
     static var annotateeaseProjectFile = UTType(exportedAs: "studio.peachtree.annotateease.aegr")
 }
 
+extension Project.Dataset {
+    static func tags(datsetPath:URL) async throws -> [DataTagWrapper]? {
+        guard FileManager.default.fileExists(atPath: datsetPath.path) else {
+            return nil
+        }
+        let jsonData = try Data(contentsOf: datsetPath)
+        return try JSONDecoder().decode([DataTag].self, from: jsonData).map { DataTagWrapper(tag: $0) }
+    }
+    
+    static func text(textFilePath:URL) async throws -> String? {
+        guard FileManager.default.fileExists(atPath: textFilePath.path) else {
+            return nil
+        }
+        return try String(contentsOf: textFilePath, encoding: .utf8)
+    }
+}

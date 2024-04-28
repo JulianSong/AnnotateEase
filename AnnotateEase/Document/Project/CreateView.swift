@@ -107,18 +107,20 @@ struct CreateView: View {
         let url = self.fileURL!.appending(path: self.name)
         let projectFileUrl = url.appending(path: "\(self.name).aegr")
         let projectTextsFolder = projectFileUrl.appending(path: "Texts")
-        do{
-            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-            try FileManager.default.createDirectory(at: projectFileUrl, withIntermediateDirectories: true)
-            try FileManager.default.createDirectory(at: projectTextsFolder, withIntermediateDirectories: true)
-            self.editModel.prjectFilePath = projectFileUrl
-            self.editModel.projectPath = url
-            self.editModel.project = project
-            try self.editModel.saveProject()
-            self.dismiss()
-        }catch{
-            self.error = LocalizedAlertError(error: error)
-            self.showAlert.toggle()
+        Task{
+            do{
+                try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(at: projectFileUrl, withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(at: projectTextsFolder, withIntermediateDirectories: true)
+                self.editModel.prjectFilePath = projectFileUrl
+                self.editModel.projectPath = url
+                self.editModel.project = project
+                try await self.editModel.saveProject()
+                self.dismiss()
+            }catch{
+                self.error = LocalizedAlertError(error: error)
+                self.showAlert.toggle()
+            }
         }
     }
 }
