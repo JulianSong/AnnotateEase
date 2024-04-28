@@ -15,3 +15,5 @@
 * ***Export to CoreML-compatible JSON:*** Generate JSON files compatible with Apple's CoreML framework directly from AnnotateEase, making it easy to integrate your annotated data into machine learning projects.
 
 ## Download & Install
+
+You can download the installation package from the release page or directly obtain the source code for self-compilation.
