@@ -103,7 +103,7 @@ class HomeViewModel: ObservableObject {
         didSet{
             Task{
                 do {
-                    guard let index = self.selectedSentenceIndex, index >= self.sentences.startIndex, index < self.sentences.endIndex else {
+                    guard let index = self.selectedSentenceIndex,index >= self.sentences.startIndex, index < self.sentences.endIndex else {
                         self.currentDataset?.selectedSentenceIndex = nil
                         try await self.saveProject()
                         return
@@ -240,7 +240,10 @@ class HomeViewModel: ObservableObject {
         let result = try await [datas,text] as [Any]
         self.datas = result.first as! [DataTagWrapper]
         self.text = result.last as! String
-        self.selectedSentenceIndex = dataset.selectedSentenceIndex
+        if dataset.mutilineMode == true {
+            try await self.splitSentence()
+            self.selectedSentenceIndex = dataset.selectedSentenceIndex
+        }
     }
 
     func saveProject() async throws {
@@ -331,7 +334,7 @@ class HomeViewModel: ObservableObject {
         
     }
     
-    func save() {
+    func save() async {
         guard let _currentDatasetPath = self.currentDatasetPath, !self.pairs.isEmpty else { return }
         let tokens = self.pairs.compactMap { $0.token }
         let labels = self.pairs.compactMap { $0.label }
@@ -352,6 +355,8 @@ class HomeViewModel: ObservableObject {
                 self.usedLexical.removeAll()
                 guard let index = self.selectedSentenceIndex,(index + 1) < self.sentences.endIndex else { return }
                 self.selectedSentenceIndex = index + 1
+                self.currentDataset?.selectedSentenceIndex = self.selectedSentenceIndex
+                try await self.saveProject()
             }
         } catch {
             debugPrint(error)
@@ -653,6 +658,9 @@ struct HomeView: View {
                                 }
                             }
                         }
+                        .onAppear{
+                            proxy.scrollTo(self.viewModel.selectedSentenceIndex)
+                        }
                         .onChange(of: self.viewModel.selectedSentenceIndex) { oldValue, newValue in
                             proxy.scrollTo(newValue)
                         }
@@ -767,7 +775,9 @@ struct HomeView: View {
             HStack {
                 Spacer()
                 Button {
-                    self.viewModel.save()
+                    Task{
+                       await self.viewModel.save()
+                    }
                 } label: {
                     Text("Save")
                 }
