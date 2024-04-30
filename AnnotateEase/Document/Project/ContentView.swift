@@ -12,11 +12,11 @@ import WrappingStack
 
 class DataTagPairModel: ObservableObject, Identifiable {
     let id: String = UUID().uuidString
-    @Published var lexical: [String] = []
+    @Published var lexical: [(String, Range<String.Index>)] = []
     @Published var label: String = ""
     @Published var showActions = false
     var token: String {
-        return self.lexical.joined(separator: " ")
+        return self.lexical.map{ $0.0 }.joined(separator: " ")
     }
     var pair: DataTagPair {
         return DataTagPair(token: self.token, label: self.label)
@@ -57,14 +57,14 @@ extension String {
         return result
     }
     
-    func splitWords() async -> [Self] {
+    func splitWords() async -> [(String,Range<String.Index>)] {
         let tags: Set<NLTag> = [.whitespace, .paragraphBreak]
-        var result: [String] = []
+        var result: [(String,Range<String.Index>)] = []
         let tagger = NLTagger(tagSchemes: [.lexicalClass])
         tagger.string = self
         tagger.enumerateTags(in: self.startIndex ..< self.endIndex, unit: .word, scheme: .lexicalClass,options: .joinContractions) { tag, tokenRange -> Bool in
             if let _tag = tag, !tags.contains(_tag) {
-                result.append(String(self[tokenRange]))
+                result.append((String(self[tokenRange]),tokenRange))
             }
             return true
         }
@@ -125,7 +125,7 @@ class HomeViewModel: ObservableObject {
             }
         }
     }
-    @Published var lexical: [String] = []
+    @Published var lexical: [(String,Range<String.Index>)] = []
     @Published var pairs: [DataTagPairModel] = []
     @Published var labels: [LabelViewModel] = []
     @Published var textShowMode:Project.Dataset.TextShowMode = .text {
@@ -178,7 +178,7 @@ class HomeViewModel: ObservableObject {
 
     var prjectFilePath: URL?
     var projectPath: URL?
-    var usedLexical: [String] = []
+    var usedLexical: [(String,Range<String.Index>)] = []
     var pair: DataTagPairModel?
     var currentDatasetPath: URL? {
         guard let _currentDataset = self.currentDataset else {
@@ -279,8 +279,8 @@ class HomeViewModel: ObservableObject {
         self.pair = nil
     }
 
-    func add(lexical: String)  {
-        guard !self.usedLexical.contains(lexical) else {
+    func add(lexical: (String,Range<String.Index>))  {
+        guard !self.usedLexical.contains(where: { $0.1 == lexical.1 } ) else {
             return
         }
         if self.pair?.label != "" {
@@ -294,22 +294,47 @@ class HomeViewModel: ObservableObject {
         self.pairs.append(vm)
     }
 
+    func removeData(data: DataTagWrapper) {
+        guard let _currentDatasetPath = self.currentDatasetPath else { return }
+        do {
+            var _datas = self.datas
+            _datas.removeAll {
+                $0.id == data.id
+            }
+            let tags = _datas.map { $0.tag }
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            try encoder.encode(tags).write(to: _currentDatasetPath)
+            self.datas = _datas
+        } catch {
+            debugPrint(error)
+        }
+    }
+    
     func removePari(pari: DataTagPairModel) {
-        self.pairs.removeAll(where: { $0.token == pari.token })
-        self.usedLexical.removeAll { text in
-            pari.lexical.contains(text)
+        self.pairs.removeAll(where: { $0.id == pari.id })
+        self.usedLexical.removeAll { lexical in
+            pari.lexical.contains(where: { $0.1 == lexical.1 })
+        }
+        if self.pair?.id == pari.id {
+            self.pair = nil
         }
     }
 
     func clearParis() {
+        self.pair = nil
         self.pairs.removeAll()
         self.usedLexical.removeAll()
     }
 
+    func resetData() {
+        
+    }
+    
     func save() {
         guard let _currentDatasetPath = self.currentDatasetPath, !self.pairs.isEmpty else { return }
-        let tokens = self.pairs.map { $0.token }
-        let labels = self.pairs.map { $0.label }
+        let tokens = self.pairs.compactMap { $0.token }
+        let labels = self.pairs.compactMap { $0.label }
         var _datas = self.datas
         _datas.append(DataTagWrapper(tag: DataTag(tokens: tokens, labels: labels)))
         do {
@@ -318,8 +343,15 @@ class HomeViewModel: ObservableObject {
             encoder.outputFormatting = .prettyPrinted
             try encoder.encode(tags).write(to: _currentDatasetPath)
             self.datas = _datas
+            self.pairs.removeAll()
+            guard self.lexical.count == self.usedLexical.count else { return }
+            self.lexical.removeAll()
             if !self.mutilineMode {
                 self.text = ""
+            }else{
+                self.usedLexical.removeAll()
+                guard let index = self.selectedSentenceIndex,(index + 1) < self.sentences.endIndex else { return }
+                self.selectedSentenceIndex = index + 1
             }
         } catch {
             debugPrint(error)
@@ -360,12 +392,15 @@ struct NewPairLabelColumn: View {
     var body: some View {
         HStack {
             Picker(selection: $viewModel.label) {
-                ForEach(self.editModel.labels,id:\.id) { label in
+                ForEach(self.editModel.labels) { label in
                     Text(label.title)
-                        .id(label.labelText)
+                        .tag(label.labelText)
                 }
-            } label: {}
-                .fixedSize()
+                Text("none").tag("none")
+            } label: {
+                
+            }
+            .fixedSize()
             Spacer()
             Button {
                 self.editModel.removePari(pari: self.viewModel)
@@ -391,8 +426,8 @@ struct LabelsLabelColumn: View {
                 EmptyView()
             }
             .focused($isFocused)
-            .onChange(of: isFocused) { isFocused in
-                guard !isFocused && !viewModel.labelText.isEmpty && !viewModel.title.isEmpty else { return }
+            .onChange(of: isFocused,initial: false) { _,_ in
+                guard !self.isFocused && !viewModel.labelText.isEmpty && !viewModel.title.isEmpty else { return }
                 Task{
                     try? await self.editModel.saveLabels()
                 }
@@ -416,8 +451,8 @@ struct LabelsTitleColumn: View {
                 EmptyView()
             }
             .focused($isFocused)
-            .onChange(of: isFocused) { isFocused in
-                guard !isFocused && !viewModel.labelText.isEmpty && !viewModel.title.isEmpty else { return }
+            .onChange(of: isFocused,initial: false) { _,_ in
+                guard !self.isFocused && !viewModel.labelText.isEmpty && !viewModel.title.isEmpty else { return }
                 Task{
                     try? await self.editModel.saveLabels()
                 }
@@ -531,6 +566,13 @@ struct HomeView: View {
                         }
                     }
                     .fixedSize()
+                    .contextMenu{
+                        Button(action: {
+                            self.viewModel.removeData(data: dataTag)
+                        }, label: {
+                            Text("Delete")
+                        })
+                    }
                 }
             } rows: {
                 ForEach(self.viewModel.datas.reversed()) { data in
@@ -576,6 +618,8 @@ struct HomeView: View {
                         .background(Color.clear)
                         .font(.body)
                         .lineSpacing(5)
+                        .textSelection(.enabled)
+                        .selectionDisabled(false)
                 }else{
                     ScrollViewReader{ proxy in
                         ScrollView {
@@ -674,10 +718,10 @@ struct HomeView: View {
                                        horizontalSpacing: 4,
                                        verticalSpacing: 4) {
                             ForEach(viewModel.lexical.indices, id: \.self) { index in
-                                Text(viewModel.lexical[index])
+                                Text(viewModel.lexical[index].0)
                                     .padding(2)
                                     .padding(.horizontal, 4)
-                                    .foregroundColor(self.viewModel.usedLexical.contains(viewModel.lexical[index]) ? .secondary : .primary)
+                                    .foregroundColor(self.viewModel.usedLexical.contains(where: { $0.1 == viewModel.lexical[index].1 }) ? .secondary : .primary)
                                     .background(Color.primary.opacity(0.1))
                                     .cornerRadius(4)
                                     .onTapGesture {

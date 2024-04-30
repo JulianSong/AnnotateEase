@@ -19,8 +19,6 @@ struct WelcomeView: View {
                         .padding(.bottom,30)
                         .shadow(color: Color.black.opacity(0.2), radius: 30,x: 8,y: 14)
                     VStack(alignment: .leading){
-  
-
                         Text("Easily and quickly label text data.")
                             .font(.title)
                             .padding(.bottom)                        
@@ -48,6 +46,7 @@ struct WelcomeView: View {
                             Button(action: {
                                 if url.startAccessingSecurityScopedResource() {
                                     NSWorkspace.shared.open(url)
+                                    self.dismiss()
                                 }
                             }, label: {
                                 Text(url.lastPathComponent)
