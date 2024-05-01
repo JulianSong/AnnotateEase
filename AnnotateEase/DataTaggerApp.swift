@@ -21,7 +21,7 @@ struct DataTaggerApp: App {
         .handlesExternalEvents(matching: [])
         
         WindowGroup {
-            HomeView()
+            MainView()
                 .frame(maxWidth: .infinity, minHeight: 600,maxHeight: .infinity)
                 .handlesExternalEvents(preferring: Set(arrayLiteral: "create"), allowing: Set(arrayLiteral: "create"))
                 .onAppear {

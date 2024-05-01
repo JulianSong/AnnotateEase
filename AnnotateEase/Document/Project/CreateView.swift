@@ -116,6 +116,10 @@ struct CreateView: View {
                 self.editModel.projectPath = url
                 self.editModel.project = project
                 try await self.editModel.saveProject()
+                var recent:[String] = UserDefaults.standard.array(forKey: "studio.peachtree.annotateease.recent") as? [String] ?? [String]()
+                recent.removeAll { $0 == projectFileUrl.path }
+                recent.append(projectFileUrl.path)
+                UserDefaults.standard.set(recent, forKey: "studio.peachtree.annotateease.recent")
                 self.dismiss()
             }catch{
                 self.error = LocalizedAlertError(error: error)

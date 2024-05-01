@@ -49,37 +49,7 @@
             startingLineNumber = "286"
             endingLineNumber = "286"
             landmarkName = "add(lexical:)"
-            landmarkType = "9">
-            <Locations>
-               <Location
-                  uuid = "75E28A53-E54C-408B-B0A3-D58ACB8A7523 - 54249513362f029a"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "AnnotateEase.HomeViewModel.add(lexical: (Swift.String, Swift.Range&lt;Swift.String.Index&gt;)) -&gt; ()"
-                  moduleName = "AnnotateEase"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/julian/SynologyDrive/EnglishCoreML/AnnotateEase/AnnotateEase/Document/Project/ContentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "286"
-                  endingLineNumber = "286">
-               </Location>
-               <Location
-                  uuid = "75E28A53-E54C-408B-B0A3-D58ACB8A7523 - 33dc875c81e57e38"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 ((Swift.String, Swift.Range&lt;Swift.String.Index&gt;)) -&gt; Swift.Bool in AnnotateEase.HomeViewModel.add(lexical: (Swift.String, Swift.Range&lt;Swift.String.Index&gt;)) -&gt; ()"
-                  moduleName = "AnnotateEase"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/julian/SynologyDrive/EnglishCoreML/AnnotateEase/AnnotateEase/Document/Project/ContentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "286"
-                  endingLineNumber = "286">
-               </Location>
-            </Locations>
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -95,37 +65,7 @@
             startingLineNumber = "311"
             endingLineNumber = "311"
             landmarkName = "removeData(data:)"
-            landmarkType = "9">
-            <Locations>
-               <Location
-                  uuid = "902378DB-28D5-429F-A87D-2159C2F9C66E - 24a75ba706381d6f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "AnnotateEase.HomeViewModel.removeData(data: AnnotateEase.DataTagWrapper) -&gt; ()"
-                  moduleName = "AnnotateEase"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/julian/SynologyDrive/EnglishCoreML/AnnotateEase/AnnotateEase/Document/Project/ContentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "312"
-                  endingLineNumber = "312">
-               </Location>
-               <Location
-                  uuid = "902378DB-28D5-429F-A87D-2159C2F9C66E - 24a75ba706381d4c"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "AnnotateEase.HomeViewModel.removeData(data: AnnotateEase.DataTagWrapper) -&gt; ()"
-                  moduleName = "AnnotateEase"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/julian/SynologyDrive/EnglishCoreML/AnnotateEase/AnnotateEase/Document/Project/ContentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "311"
-                  endingLineNumber = "311">
-               </Location>
-            </Locations>
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

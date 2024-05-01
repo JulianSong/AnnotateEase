@@ -47,7 +47,9 @@ struct CreateDatasetView: View {
                 } label: {
                     Text("Create")
                 }
-                .accentColor(Color(nsColor: .controlAccentColor))
+                .buttonStyle(.borderedProminent)
+                .tint(Color(nsColor: .selectedContentBackgroundColor))
+                .disabled(self.name.isEmpty)
             }
             .padding()
         }

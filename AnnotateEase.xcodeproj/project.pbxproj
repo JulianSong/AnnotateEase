@@ -16,9 +16,11 @@
 		B99668AC2B12DB5700EF9BA2 /* DataTaggerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99668A32B12DB5700EF9BA2 /* DataTaggerApp.swift */; };
 		B99668AD2B12DB5700EF9BA2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B99668A42B12DB5700EF9BA2 /* Assets.xcassets */; };
 		B99668AE2B12DB5700EF9BA2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B99668A62B12DB5700EF9BA2 /* Preview Assets.xcassets */; };
-		B99668AF2B12DB5700EF9BA2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99668A82B12DB5700EF9BA2 /* ContentView.swift */; };
+		B99668AF2B12DB5700EF9BA2 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99668A82B12DB5700EF9BA2 /* MainView.swift */; };
 		B99668B02B12DB5700EF9BA2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B99668A92B12DB5700EF9BA2 /* Info.plist */; };
 		B99668B12B12DB5700EF9BA2 /* DatataggerDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99668AA2B12DB5700EF9BA2 /* DatataggerDocument.swift */; };
+		B9A826B32BE271DB00997C2A /* DatasetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A826B22BE271DB00997C2A /* DatasetView.swift */; };
+		B9A826B52BE2731D00997C2A /* DatasetInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A826B42BE2731D00997C2A /* DatasetInspector.swift */; };
 		B9D7D2522B988079009719CA /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D7D2512B988079009719CA /* WelcomeView.swift */; };
 /* End PBXBuildFile section */
 
@@ -33,9 +35,11 @@
 		B99668A42B12DB5700EF9BA2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B99668A62B12DB5700EF9BA2 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B99668A72B12DB5700EF9BA2 /* AnnotateEase.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = AnnotateEase.entitlements; sourceTree = "<group>"; };
-		B99668A82B12DB5700EF9BA2 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B99668A82B12DB5700EF9BA2 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		B99668A92B12DB5700EF9BA2 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B99668AA2B12DB5700EF9BA2 /* DatataggerDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatataggerDocument.swift; sourceTree = "<group>"; };
+		B9A826B22BE271DB00997C2A /* DatasetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatasetView.swift; sourceTree = "<group>"; };
+		B9A826B42BE2731D00997C2A /* DatasetInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatasetInspector.swift; sourceTree = "<group>"; };
 		B9D7D2512B988079009719CA /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -104,7 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				B99668AA2B12DB5700EF9BA2 /* DatataggerDocument.swift */,
-				B99668A82B12DB5700EF9BA2 /* ContentView.swift */,
+				B99668A82B12DB5700EF9BA2 /* MainView.swift */,
 				B99668A22B12DB5700EF9BA2 /* CreateView.swift */,
 				B9D7D2512B988079009719CA /* WelcomeView.swift */,
 			);
@@ -115,6 +119,8 @@
 			isa = PBXGroup;
 			children = (
 				B91882C82B970AA200CBB0C8 /* CreateDatasetView.swift */,
+				B9A826B22BE271DB00997C2A /* DatasetView.swift */,
+				B9A826B42BE2731D00997C2A /* DatasetInspector.swift */,
 			);
 			path = Dateset;
 			sourceTree = "<group>";
@@ -244,7 +250,9 @@
 				B91882C92B970AA200CBB0C8 /* CreateDatasetView.swift in Sources */,
 				B91882CD2B987BAF00CBB0C8 /* LocalizedAlertError.swift in Sources */,
 				B9D7D2522B988079009719CA /* WelcomeView.swift in Sources */,
-				B99668AF2B12DB5700EF9BA2 /* ContentView.swift in Sources */,
+				B9A826B32BE271DB00997C2A /* DatasetView.swift in Sources */,
+				B9A826B52BE2731D00997C2A /* DatasetInspector.swift in Sources */,
+				B99668AF2B12DB5700EF9BA2 /* MainView.swift in Sources */,
 				B9709BCF2B96F5F100917DAF /* LabelViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

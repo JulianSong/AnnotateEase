@@ -17,7 +17,7 @@ struct WelcomeView: View {
                 VStack(alignment: .center){
                     Image("AnnotateEase", bundle: .main)
                         .padding(.bottom,30)
-                        .shadow(color: Color.black.opacity(0.2), radius: 30,x: 8,y: 14)
+                        .shadow(color: Color.black.opacity(0.1), radius: 20,x: 8,y: 14)
                     VStack(alignment: .leading){
                         Text("Easily and quickly label text data.")
                             .font(.title)
@@ -56,12 +56,19 @@ struct WelcomeView: View {
                             Text(url.path)
                                 .font(.footnote)
                                 .multilineTextAlignment(.leading)
+                                .lineSpacing(4)
                         }
                         .frame(maxWidth: .infinity,alignment:.init(horizontal: .leading, vertical: .center))
                         .listRowSeparator(.hidden)
                         .padding()
-                        .background(Color.gray.opacity(0.3))
+                        .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
+                        .onTapGesture {
+                            if url.startAccessingSecurityScopedResource() {
+                                NSWorkspace.shared.open(url)
+                                self.dismiss()
+                            }
+                        }
                     }
                 }
                 .ignoresSafeArea()
